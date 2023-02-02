@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import { filter } from 'bluebird';
 
 (async () => {
 
@@ -30,25 +31,22 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   /**************************************************************************** */
 
   //! END @TODO1
-  app.get("/filteredimage", (req, res) => {
-    const imageUrl = req.query.image_url.toString();
+  app.get("/filteredimage", async (req: any, res: any) => {
+    let imageUrl = req.query.image_url.toString();
     
     if (!imageUrl) {
-    return res.status(400).send({ error: "image_url is a required query parameter" });
+      res.status(400).send({ error: "image_url is a required query parameter" });
     }
     
-    filterImageFromURL(imageUrl)
-    .then((filteredpath) => {
-    res.sendFile(filteredpath, () => {deleteLocalFiles([filteredpath]);
-    });
-    })
-    .catch((error) => {
-    return res.status(400).send({ error: error.message });
+    let filteredpath = await filterImageFromURL(imageUrl);
+    res.status(200).sendfile(filteredpath, () => {
+      deleteLocalFiles([filteredpath]);
     });
     });
+ 
   // Root Endpoint
   // Displays a simple message to the user
-  app.get( "/", async ( req, res ) => {
+  app.get( "/", async ( req: any, res: any) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
   
